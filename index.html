@@ -1,232 +1,286 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Tiragem de Tarô</title>
+    <meta charset="UTF-8">
+    <title>Oráculo de Tarot Completo</title>
+    <style>
+        body {
+            margin: 0;
+            background: radial-gradient(circle, #1a1a1a, #050505);
+            color: white;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            text-align: center;
+        }
 
-<style>
-body {
-  margin: 0;
-  background: radial-gradient(circle, #1a1a1a, #000);
-  color: white;
-  font-family: Arial;
-  text-align: center;
-}
+        /* INDICADOR ONLINE */
+        .online-indicator {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            border: 1px solid #333;
+            z-index: 1000;
+        }
 
-/* HEADER */
-h2 {
-  margin-top: 20px;
-}
+        .bola-verde {
+            width: 8px;
+            height: 8px;
+            background-color: #00ff88;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 8px #00ff88;
+            animation: pulse 2s infinite;
+        }
 
-/* CAIXA PRINCIPAL */
-.container {
-  max-width: 900px;
-  margin: auto;
-  padding: 20px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 15px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
-}
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
 
-/* INPUTS */
-input {
-  padding: 12px;
-  margin: 10px;
-  border-radius: 8px;
-  border: none;
-  width: 60%;
-}
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
 
-/* BOTÕES */
-button {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(45deg, #6a00ff, #a200ff);
-  color: white;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.3s;
-}
+        input, button {
+            padding: 12px;
+            margin: 8px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            outline: none;
+        }
 
-button:hover {
-  transform: scale(1.05);
-}
+        input { background: #111; color: white; width: 220px; }
+        
+        button {
+            background: linear-gradient(45deg, #5e17eb, #b127df);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
 
-/* CARTAS */
-.card {
-  width: 120px;
-  height: 200px;
-  perspective: 1000px;
-  display: inline-block;
-  margin: 15px;
-}
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(177, 39, 223, 0.4); }
 
-.inner {
-  width: 100%;
-  height: 100%;
-  transition: transform 0.8s;
-  transform-style: preserve-3d;
-  position: relative;
-}
+        /* CARTAS */
+        .card {
+            width: 100px;
+            height: 170px;
+            perspective: 1000px;
+            display: inline-block;
+            margin: 10px;
+        }
 
-.flip {
-  transform: rotateY(180deg);
-}
+        .inner {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
 
-.front, .back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 0 15px rgba(0,0,0,0.7);
-}
+        .flip { transform: rotateY(180deg); }
 
-.back {
-  transform: rotateY(180deg);
-}
+        .front, .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            overflow: hidden;
+        }
 
-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+        .back { transform: rotateY(180deg); }
+        img { width: 100%; height: 100%; object-fit: cover; }
 
-/* TEXTO */
-#resultado {
-  margin-top: 20px;
-  white-space: pre-line;
-  text-align: left;
-}
-</style>
+        /* RESULTADO */
+        #resultado {
+            margin-top: 30px;
+            text-align: left;
+            padding: 20px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+            border-left: 5px solid #b127df;
+            display: none;
+        }
+
+        h2 { color: #b127df; text-shadow: 0 0 10px rgba(177, 39, 223, 0.5); }
+        .destaque { color: #00ff88; font-weight: bold; }
+    </style>
 </head>
-
 <body>
 
-<h2>🔮 Tiragem de Tarô</h2>
-
-<div class="container">
-
-<input id="nome" placeholder="Digite seu nome">
-<button onclick="entrar()">Entrar</button>
-
-<br>
-
-<input id="pergunta" placeholder="Digite sua pergunta">
-<button onclick="tirar()">Tirar Cartas</button>
-
-<div id="cartas"></div>
-
-<div id="resultado"></div>
-
-</div>
-
-<audio id="som" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"></audio>
-
-<script>
-
-let nomeUsuario = "";
-
-const cartas = [
-  { nome: "O Louco", img: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg", significado: "novos começos" },
-  { nome: "O Mago", img: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg", significado: "controle e ação" },
-  { nome: "A Imperatriz", img: "https://upload.wikimedia.org/wikipedia/commons/d/d2/RWS_Tarot_03_Empress.jpg", significado: "crescimento" },
-  { nome: "A Torre", img: "https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg", significado: "ruptura" },
-  { nome: "O Sol", img: "https://upload.wikimedia.org/wikipedia/commons/1/17/RWS_Tarot_19_Sun.jpg", significado: "sucesso" },
-  { nome: "A Lua", img: "https://upload.wikimedia.org/wikipedia/commons/7/7f/RWS_Tarot_18_Moon.jpg", significado: "confusão" },
-  { nome: "A Estrela", img: "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_17_Star.jpg", significado: "esperança" },
-  { nome: "A Morte", img: "https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg", significado: "transformação" }
-];
-
-function entrar() {
-  let nome = document.getElementById("nome").value;
-
-  if (!nome) {
-    alert("Digite seu nome!");
-    return;
-  }
-
-  nomeUsuario = nome;
-}
-
-function tirar() {
-  let pergunta = document.getElementById("pergunta").value.toLowerCase();
-
-  if (!pergunta) {
-    alert("Digite uma pergunta!");
-    return;
-  }
-
-  let copia = [...cartas];
-  let html = "";
-  let leitura = "";
-  let palavras = [];
-
-  const posicoes = ["Passado", "Presente", "Obstáculo", "Futuro"];
-
-  for (let i = 0; i < 4; i++) {
-    let index = Math.floor(Math.random() * copia.length);
-    let carta = copia[index];
-
-    palavras.push(carta.significado);
-
-    html += `
-    <div class="card">
-      <div class="inner" id="carta${i}">
-        <div class="front">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Card_back_06.svg">
-        </div>
-        <div class="back">
-          <img src="${carta.img}">
-        </div>
-      </div>
+    <div class="online-indicator">
+        <div class="bola-verde"></div>
+        <span id="txt-online">Cartomantes: ...</span>
     </div>
-    `;
 
-    leitura += `${posicoes[i]}: ${carta.nome} → ${carta.significado}\n\n`;
+    <h2>🔮 Oráculo dos Arcanos</h2>
 
-    copia.splice(index, 1);
-  }
+    <div class="container">
+        <div id="login-area">
+            <input type="text" id="nome" placeholder="Seu nome completo">
+            <input type="date" id="nascimento">
+            <br>
+            <button onclick="entrar()">Conectar ao Astral</button>
+        </div>
 
-  document.getElementById("cartas").innerHTML = html;
+        <div id="jogo-area" style="display: none;">
+            <p id="boas-vindas"></p>
+            <input type="text" id="pergunta" placeholder="Ex: Vou conseguir um emprego?" style="width: 70%;">
+            <button onclick="tirarCartas()">Consultar</button>
+        </div>
 
-  for (let i = 0; i < 4; i++) {
-    setTimeout(() => {
-      document.getElementById("carta" + i).classList.add("flip");
-    }, i * 500);
-  }
+        <div id="display-cartas"></div>
+        <div id="resultado"></div>
+    </div>
 
-  setTimeout(() => {
-    document.getElementById("som").play();
-  }, 2500);
+    <audio id="som-sino" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"></audio>
 
-  let texto = palavras.join(" ");
+    <script>
+        // BARALHO COMPLETO (22 ARCANOS MAIORES)
+        const baralho = [
+            { n: "O Louco", img: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg", significado: "novos começos, espontaneidade", vibe: 1 },
+            { n: "O Mago", img: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg", significado: "manifestação, poder pessoal", vibe: 1 },
+            { n: "A Sacerdotisa", img: "https://upload.wikimedia.org/wikipedia/commons/8/88/RWS_Tarot_02_High_Priestess.jpg", significado: "intuição, mistério", vibe: 1 },
+            { n: "A Imperatriz", img: "https://upload.wikimedia.org/wikipedia/commons/d/d2/RWS_Tarot_03_Empress.jpg", significado: "fertilidade, abundância", vibe: 1 },
+            { n: "O Imperador", img: "https://upload.wikimedia.org/wikipedia/commons/c/c3/RWS_Tarot_04_Emperor.jpg", significado: "autoridade, estrutura", vibe: 1 },
+            { n: "O Hierofante", img: "https://upload.wikimedia.org/wikipedia/commons/8/8d/RWS_Tarot_05_Hierophant.jpg", significado: "tradição, sabedoria", vibe: 1 },
+            { n: "Os Enamorados", img: "https://upload.wikimedia.org/wikipedia/commons/3/3a/RWS_Tarot_06_Lovers.jpg", significado: "escolhas, união", vibe: 1 },
+            { n: "O Carro", img: "https://upload.wikimedia.org/wikipedia/commons/9/9b/RWS_Tarot_07_Chariot.jpg", significado: "vitória, determinação", vibe: 1 },
+            { n: "A Força", img: "https://upload.wikimedia.org/wikipedia/commons/f/f2/RWS_Tarot_08_Strength.jpg", significado: "coragem, paciência", vibe: 1 },
+            { n: "O Eremita", img: "https://upload.wikimedia.org/wikipedia/commons/4/4d/RWS_Tarot_09_Hermit.jpg", significado: "introspecção, busca", vibe: 0 },
+            { n: "A Roda da Fortuna", img: "https://upload.wikimedia.org/wikipedia/commons/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg", significado: "ciclos, destino", vibe: 1 },
+            { n: "A Justiça", img: "https://upload.wikimedia.org/wikipedia/commons/e/e0/RWS_Tarot_11_Justice.jpg", significado: "equilíbrio, verdade", vibe: 0 },
+            { n: "O Pendurado", img: "https://upload.wikimedia.org/wikipedia/commons/2/2b/RWS_Tarot_12_Hanged_Man.jpg", significado: "pausa, nova perspectiva", vibe: -1 },
+            { n: "A Morte", img: "https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg", significado: "transformação, fim de ciclo", vibe: -1 },
+            { n: "A Temperança", img: "https://upload.wikimedia.org/wikipedia/commons/f/f8/RWS_Tarot_14_Temperance.jpg", significado: "moderação, cura", vibe: 1 },
+            { n: "O Diabo", img: "https://upload.wikimedia.org/wikipedia/commons/5/55/RWS_Tarot_15_Devil.jpg", significado: "vício, apego material", vibe: -1 },
+            { n: "A Torre", img: "https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg", significado: "caos, mudança súbita", vibe: -1 },
+            { n: "A Estrela", img: "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_17_Star.jpg", significado: "esperança, inspiração", vibe: 1 },
+            { n: "A Lua", img: "https://upload.wikimedia.org/wikipedia/commons/7/7f/RWS_Tarot_18_Moon.jpg", significado: "ilusão, medo", vibe: -1 },
+            { n: "O Sol", img: "https://upload.wikimedia.org/wikipedia/commons/1/17/RWS_Tarot_19_Sun.jpg", significado: "alegria, sucesso", vibe: 1 },
+            { n: "O Julgamento", img: "https://upload.wikimedia.org/wikipedia/commons/d/dd/RWS_Tarot_20_Judgement.jpg", significado: "renascimento, chamado", vibe: 1 },
+            { n: "O Mundo", img: "https://upload.wikimedia.org/wikipedia/commons/f/ff/RWS_Tarot_21_World.jpg", significado: "conclusão, viagem", vibe: 1 }
+        ];
 
-  let conclusao = texto.includes("sucesso") 
-    ? "Existe uma tendência positiva, mas depende das suas atitudes."
-    : texto.includes("transformação") 
-    ? "Uma mudança forte pode acontecer e alterar o caminho."
-    : "A situação ainda exige mais análise antes de agir.";
+        let nomeUser = "";
+        let dataUser = "";
 
-  let leituraProf = texto.includes("confusão")
-    ? "Há influência emocional afetando a clareza da situação."
-    : texto.includes("esperança")
-    ? "Mesmo com dificuldades, há sinais de melhora."
-    : "O resultado depende principalmente das suas escolhas.";
+        // Atualiza cartomantes (muda o número apenas quando a hora muda)
+        function atualizarOnline() {
+            const horaAtual = new Date().getHours();
+            // Gera um número baseado na hora para ser "fixo" por 60min
+            const semente = (horaAtual * 7) % 20 + 15; 
+            document.getElementById("txt-online").innerText = `${semente} cartomantes online`;
+        }
+        atualizarOnline();
 
-  let resposta = `${nomeUsuario}, sua pergunta foi:\n"${pergunta}"\n\n`;
-  resposta += leitura;
-  resposta += "Conclusão: " + conclusao + "\n\n";
-  resposta += "Leitura profissional:\n" + leituraProf;
+        function entrar() {
+            nomeUser = document.getElementById("nome").value;
+            dataUser = document.getElementById("nascimento").value;
 
-  document.getElementById("resultado").innerText = resposta;
+            if (nomeUser === "" || dataUser === "") {
+                alert("Por favor, preencha seu nome e data de nascimento!");
+                return;
+            }
 
-  document.getElementById("pergunta").value = "";
-}
+            document.getElementById("login-area").style.display = "none";
+            document.getElementById("jogo-area").style.display = "block";
+            document.getElementById("boas-vindas").innerHTML = `Bem-vindo(a), <b>${nomeUser}</b>. O que as cartas revelam para você?`;
+        }
 
-</script>
+        function tirarCartas() {
+            let pergunta = document.getElementById("pergunta").value;
+            if (pergunta === "") return alert("Qual a sua dúvida?");
 
+            let deckCopia = [...baralho];
+            let sorteadas = [];
+            let html = "";
+            let conclusaoTxt = "";
+
+            const posicoes = ["Passado", "Presente", "Obstáculo", "Futuro"];
+
+            for (let i = 0; i < 4; i++) {
+                let index = Math.floor(Math.random() * deckCopia.length);
+                let carta = deckCopia[index];
+                sorteadas.push(carta);
+                deckCopia.splice(index, 1);
+
+                html += `
+                    <div class="card">
+                        <div class="inner" id="card-${i}">
+                            <div class="front"><img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Card_back_06.svg"></div>
+                            <div class="back"><img src="${carta.img}"></div>
+                        </div>
+                    </div>`;
+                
+                conclusaoTxt += `<b>${posicoes[i]}</b>: ${carta.n} (${carta.significado})<br>`;
+            }
+
+            document.getElementById("display-cartas").innerHTML = html;
+            document.getElementById("resultado").style.display = "none";
+
+            // Animação de virar
+            for (let i = 0; i < 4; i++) {
+                setTimeout(() => { document.getElementById(`card-${i}`).classList.add('flip'); }, i * 400);
+            }
+
+            setTimeout(() => {
+                document.getElementById("som-sino").play();
+                processarLeitura(pergunta, sorteadas, conclusaoTxt);
+            }, 2200);
+        }
+
+        function processarLeitura(pergunta, sorteadas, conclusao) {
+            let p = pergunta.toLowerCase();
+            let futura = sorteadas[3];
+            let vibeGeral = sorteadas.reduce((acc, c) => acc + c.vibe, 0);
+            let leituraPro = "";
+
+            // Lógica de Resposta por Tema
+            if (p.includes("cor")) {
+                const cores = ["Verde vibrante", "Dourado", "Azul Índigo", "Violeta", "Branco"];
+                let corSorteada = cores[Math.floor(Math.random() * cores.length)];
+                leituraPro = `Para o seu dia, a carta do futuro (<span class="destaque">${futura.n}</span>) sugere que você use <span class="destaque">${corSorteada}</span> para atrair boas energias.`;
+            } 
+            else if (p.includes("amor") || p.includes("ele") || p.includes("ela")) {
+                if (vibeGeral > 0) leituraPro = `No amor, o <span class="destaque">${futura.n}</span> indica caminhos abertos. Alguém ou algo novo trará a paz que você busca.`;
+                else leituraPro = `O campo afetivo pede cuidado. O obstáculo da <span class="destaque">${sorteadas[2].n}</span> mostra que mágoas passadas ainda travam seu coração.`;
+            }
+            else if (p.includes("dinheiro") || p.includes("trabalho") || p.includes("emprego")) {
+                if (futura.vibe >= 0) leituraPro = `As finanças tendem a melhorar. O <span class="destaque">${futura.n}</span> simboliza que seus esforços serão recompensados em breve.`;
+                else leituraPro = `Atenção aos gastos! Com a carta <span class="destaque">${sorteadas[2].n}</span> no meio do caminho, evite investimentos arriscados agora.`;
+            }
+            else {
+                if (vibeGeral > 1) leituraPro = `O universo diz <b>SIM</b>. A energia do <span class="destaque">${futura.n}</span> confirma que você está no caminho certo.`;
+                else if (vibeGeral < 0) leituraPro = `O momento é de cautela. O oráculo sugere que você espere, pois a <span class="destaque">${sorteadas[2].n}</span> está bloqueando seu progresso.`;
+                else leituraPro = `A resposta é incerta. O <span class="destaque">${sorteadas[1].n}</span> no presente pede que você use mais a sua intuição antes de decidir.`;
+            }
+
+            let dataF = dataUser.split("-").reverse().join("/");
+
+            document.getElementById("resultado").innerHTML = `
+                <small>Consultante: ${nomeUser} | Nascido em: ${dataF}</small><br><br>
+                <span style="color:#b127df"><b>--- CONCLUSÃO DAS CARTAS ---</b></span><br>
+                ${conclusao}<br>
+                <span style="color:#b127df"><b>--- LEITURA PROFISSIONAL ---</b></span><br>
+                <i>"${leituraPro}"</i>
+            `;
+            document.getElementById("resultado").style.display = "block";
+            document.getElementById("pergunta").value = "";
+        }
+    </script>
 </body>
 </html>
